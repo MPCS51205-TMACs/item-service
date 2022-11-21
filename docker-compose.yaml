@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres
+    container_name: postgres-item
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: item-service
+      POSTGRES_PASSWORD: item-service
+      POSTGRES_DB: item
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq-item
+    restart: always
+    ports:
+      - "15672:15672"
+      - "5672:5672"

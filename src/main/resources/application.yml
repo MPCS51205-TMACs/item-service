@@ -1,0 +1,17 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+  datasource:
+    username: item-service
+    password: item-service
+    url: jdbc:postgresql://localhost:5432/item
+
+  rabbitmq:
+    template:
+      exchange-create: item.create
+      exchange-update: item.update
+  sql:
+    init:
+      mode: always
+      platform: postgres
