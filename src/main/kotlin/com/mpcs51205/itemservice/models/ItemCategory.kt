@@ -7,8 +7,9 @@ import java.util.*
 import javax.persistence.*
 
 @Entity
-@Table(indexes = [Index(columnList = "id")])
+@Table
 class ItemCategory(categoryName: String?): Serializable {
+
     @Id
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "uuid2")

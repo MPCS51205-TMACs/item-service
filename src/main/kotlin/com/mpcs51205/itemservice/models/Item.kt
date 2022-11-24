@@ -9,7 +9,7 @@ import java.util.*
 import javax.persistence.*
 
 @Entity
-@Table(indexes = [Index(columnList = "id")])
+@Table
 class Item: Serializable {
 
     @Id
@@ -51,18 +51,12 @@ class Item: Serializable {
     @Column
     var inappropriate: Boolean = false
 
-    @JsonIgnore
     @ManyToMany(mappedBy = "items", cascade = [CascadeType.PERSIST])
     var categories = mutableListOf<ItemCategory>()
 
-    @ManyToMany
-    var bookmarks: List<ItemBookmark> = mutableListOf()
-
     fun isCategoryApplied(catId: UUID): Boolean {
         for (category in this.categories) {
-            if (category.id == catId) {
-                return true
-            }
+            if (category.id == catId) { return true }
         }
         return false
     }

@@ -55,7 +55,6 @@ class ItemService(val itemRepository: ItemRepository,
                 targetCategory.items += item
                 saveItem(item)
                 categoryRepository.save(targetCategory)
-                println("Saved everything")
             } else {
                 println("Category already applied to item $itemId")
             }
