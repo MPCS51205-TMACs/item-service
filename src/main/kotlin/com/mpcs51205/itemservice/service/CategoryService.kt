@@ -1,6 +1,6 @@
 package com.mpcs51205.itemservice.service
 
-import com.mpcs51205.itemservice.models.ItemCategory
+import com.mpcs51205.itemservice.models.Category
 import com.mpcs51205.itemservice.repository.CategoryRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -10,16 +10,16 @@ import java.util.*
 @Service
 class CategoryService(val categoryRepository: CategoryRepository) {
 
-    fun getCategoryById(catId: UUID): ItemCategory {
+    fun getCategoryById(catId: UUID): Category {
         return categoryRepository.findByIdOrNull(catId) ?: throw Exception("No such category.")
     }
 
-    fun createCategory(category: ItemCategory): ItemCategory {
+    fun createCategory(category: Category): Category {
         saveCategory(category)
         return category
     }
 
-    fun saveCategory(category: ItemCategory) {
+    fun saveCategory(category: Category) {
         try {
             categoryRepository.save(category)
         } catch (e: Exception) {
@@ -29,8 +29,8 @@ class CategoryService(val categoryRepository: CategoryRepository) {
 
     fun deleteCategory(catId: UUID) = categoryRepository.delete(getCategoryById(catId))
 
-    fun modifyCategory(catToModify: UUID, newDescription: String): ItemCategory {
-        val toModify: ItemCategory = getCategoryById(catToModify)
+    fun modifyCategory(catToModify: UUID, newDescription: String): Category {
+        val toModify: Category = getCategoryById(catToModify)
         try {
             toModify.categoryDescription = newDescription
             saveCategory(toModify)

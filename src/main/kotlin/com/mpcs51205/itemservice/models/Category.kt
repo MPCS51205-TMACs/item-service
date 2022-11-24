@@ -8,7 +8,7 @@ import javax.persistence.*
 
 @Entity
 @Table
-class ItemCategory(categoryName: String?): Serializable {
+class Category(categoryName: String?): Serializable {
 
     @Id
     @GenericGenerator(name = "uuid2", strategy = "uuid2")

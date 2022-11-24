@@ -1,9 +1,9 @@
 package com.mpcs51205.itemservice.models
 
 
-import com.fasterxml.jackson.annotation.JsonIgnore
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.hibernate.annotations.GenericGenerator
+import java.awt.print.Book
 import java.io.Serializable
 import java.util.*
 import javax.persistence.*
@@ -52,11 +52,21 @@ class Item: Serializable {
     var inappropriate: Boolean = false
 
     @ManyToMany(mappedBy = "items", cascade = [CascadeType.PERSIST])
-    var categories = mutableListOf<ItemCategory>()
+    var categories = mutableListOf<Category>()
+
+    @OneToMany(mappedBy = "item", cascade = [CascadeType.ALL])
+    var bookmarks = mutableListOf<Bookmark>()
 
     fun isCategoryApplied(catId: UUID): Boolean {
         for (category in this.categories) {
             if (category.id == catId) { return true }
+        }
+        return false
+    }
+
+    fun isBookmarkApplied(userId: UUID): Boolean {
+        for (bookmark in this.bookmarks) {
+            if (bookmark.userId == userId) { return true }
         }
         return false
     }

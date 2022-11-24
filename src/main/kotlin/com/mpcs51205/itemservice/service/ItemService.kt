@@ -1,14 +1,16 @@
 package com.mpcs51205.itemservice.service
 
 import com.mpcs51205.itemservice.event.RabbitPublisher
+import com.mpcs51205.itemservice.models.Bookmark
 import com.mpcs51205.itemservice.models.Item
-import com.mpcs51205.itemservice.models.ItemCategory
+import com.mpcs51205.itemservice.models.Category
 import com.mpcs51205.itemservice.models.ItemUpdate
 import com.mpcs51205.itemservice.repository.CategoryRepository
 import com.mpcs51205.itemservice.repository.ItemRepository
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
+import java.awt.print.Book
 import java.util.UUID
 
 @Service
@@ -45,10 +47,10 @@ class ItemService(val itemRepository: ItemRepository,
         return target
     }
 
-    fun addCategoryToItem(itemId: UUID, newCat: String): List<ItemCategory> {
+    fun addCategoryToItem(itemId: UUID, newCat: String): List<Category> {
         val item: Item = getItemById(itemId)
         // Check if category exists (add if not) and it is not already applied to the target item
-        val targetCategory: ItemCategory? = categoryRepository.findByCategoryDescriptionIs(newCat)
+        val targetCategory: Category? = categoryRepository.findByCategoryDescriptionIs(newCat)
         if (targetCategory != null) {   // Category exists
             if (!item.isCategoryApplied(targetCategory.id!!)) {
                 item.categories += targetCategory
@@ -60,7 +62,7 @@ class ItemService(val itemRepository: ItemRepository,
             }
 
         } else {    // New category, add to table
-            val newCategory = ItemCategory(newCat)
+            val newCategory = Category(newCat)
             // Add item to category
             newCategory.items += item
             categoryService.createCategory(newCategory)
@@ -69,5 +71,25 @@ class ItemService(val itemRepository: ItemRepository,
             saveItem(item)
         }
         return item.categories
+    }
+
+    fun addBookmarkToItem(itemId: UUID, userId: UUID): List<Bookmark> {
+        val item: Item = getItemById(itemId)
+        if (!item.isBookmarkApplied(userId)) {
+            val newBookmark = Bookmark()
+            newBookmark.userId = userId
+            newBookmark.item = item
+            item.bookmarks += newBookmark
+            saveItem(item)
+        }
+        return item.bookmarks
+    }
+
+    fun getBookmarkedItems(userId: UUID): List<Item> {
+        return itemRepository.getItemsByBookmarks(userId) as List<Item>
+    }
+
+    fun getUsersByBookmarkedItem(itemId: UUID): List<UUID> {
+        return itemRepository.getUsersByBookmarkedItem(itemId) as List<UUID>
     }
 }
