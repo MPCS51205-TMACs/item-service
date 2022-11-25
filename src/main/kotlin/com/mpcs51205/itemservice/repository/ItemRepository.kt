@@ -15,4 +15,5 @@ interface ItemRepository: JpaRepository <Item, UUID> {
 
     @Query("SELECT DISTINCT b.userId FROM Bookmark b WHERE b.item.id = ?1")
     fun getUsersByBookmarkedItem(itemId: UUID): Collection<UUID>?
+
 }

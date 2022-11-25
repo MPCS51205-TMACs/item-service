@@ -1,6 +1,5 @@
 package com.mpcs51205.itemservice.controller
 
-import com.mpcs51205.itemservice.event.RabbitPublisher
 import com.mpcs51205.itemservice.models.Item
 import com.mpcs51205.itemservice.models.ItemUpdate
 import com.mpcs51205.itemservice.service.ItemService
@@ -16,6 +15,9 @@ class ItemController(val itemService: ItemService) {
 
     @GetMapping("/{itemId}")
     fun getItem(@PathVariable itemId: UUID): Item = itemService.getItemById(itemId)
+
+    @GetMapping("/query")
+    fun queryItems(@RequestBody queryExample: ItemUpdate): Collection<Item> = itemService.queryItems(queryExample)
 
     @GetMapping("/bookmark/byUser:{userId}")
     fun getBookmarkedItemsByUser(@PathVariable userId: UUID): Collection<Item> =

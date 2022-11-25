@@ -3,6 +3,7 @@ package com.mpcs51205.itemservice.models
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.hibernate.annotations.GenericGenerator
+import org.springframework.data.domain.Example
 import java.awt.print.Book
 import java.io.Serializable
 import java.util.*
@@ -22,22 +23,22 @@ class Item: Serializable {
     var userEmail: String? = null
 
     @Column(nullable = false)
-    lateinit var description: String
+    var description: String? = null
 
     @Column(nullable = false)
-    var quantity: Int = 0
+    var quantity: Int? = null
 
     @Column(nullable = false)
-    var price: Double = 0.0
+    var price: Double? = null
 
     @Column(nullable = false)
-    var shippingCosts: Double = 0.0
+    var shippingCosts: Double? = null
 
     @Column(nullable = false)
-    lateinit var startTime: Date
+    var startTime: Date? = null
 
     @Column(nullable = false)
-    lateinit var endTime: Date
+    var endTime: Date? = null
 
     @Column
     var buyNow: Boolean = true
@@ -59,14 +60,18 @@ class Item: Serializable {
 
     fun isCategoryApplied(catId: UUID): Boolean {
         for (category in this.categories) {
-            if (category.id == catId) { return true }
+            if (category.id == catId) {
+                return true
+            }
         }
         return false
     }
 
     fun isBookmarkApplied(userId: UUID): Boolean {
         for (bookmark in this.bookmarks) {
-            if (bookmark.userId == userId) { return true }
+            if (bookmark.userId == userId) {
+                return true
+            }
         }
         return false
     }
@@ -85,6 +90,8 @@ class ItemUpdate: Serializable {
     var upForAuction: Boolean? = null
     var counterfeit: Boolean? = null
     var inappropriate: Boolean? = null
+    var categories: MutableList<Category>? = null
+    var bookmarks: MutableList<Bookmark>? = null
 
     fun update(item: Item) : ItemUpdateEvent {
         item.userEmail = this.userEmail ?: item.userEmail
@@ -98,8 +105,26 @@ class ItemUpdate: Serializable {
         item.upForAuction = this.upForAuction ?: item.upForAuction
         item.counterfeit = this.counterfeit ?: item.counterfeit
         item.inappropriate = this.inappropriate ?: item.inappropriate
+        item.categories = this.categories ?: item.categories
+        item.bookmarks = this.bookmarks ?: item.bookmarks
 
         return ItemUpdateEvent(item.id!!, this)
+    }
+
+    fun createQuery(item: Item) {
+        item.userEmail = this.userEmail ?: item.userEmail
+        item.price = this.price ?: item.price
+        item.quantity = this.quantity ?: item.quantity
+        item.startTime = this.startTime ?: item.startTime
+        item.endTime = this.endTime ?: item.endTime
+        item.shippingCosts = this.shippingCosts ?: item.shippingCosts
+        item.description = this.description ?: item.description
+        item.buyNow = this.buyNow ?: item.buyNow
+        item.upForAuction = this.upForAuction ?: item.upForAuction
+        item.counterfeit = this.counterfeit ?: item.counterfeit
+        item.inappropriate = this.inappropriate ?: item.inappropriate
+        item.categories = this.categories ?: item.categories
+        item.bookmarks = this.bookmarks ?: item.bookmarks
     }
 }
 

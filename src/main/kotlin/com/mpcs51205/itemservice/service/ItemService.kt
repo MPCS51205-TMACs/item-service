@@ -8,6 +8,8 @@ import com.mpcs51205.itemservice.models.ItemUpdate
 import com.mpcs51205.itemservice.repository.CategoryRepository
 import com.mpcs51205.itemservice.repository.ItemRepository
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.data.domain.Example
+import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.awt.print.Book
@@ -49,27 +51,22 @@ class ItemService(val itemRepository: ItemRepository,
 
     fun addCategoryToItem(itemId: UUID, newCat: String): List<Category> {
         val item: Item = getItemById(itemId)
-        // Check if category exists (add if not) and it is not already applied to the target item
         val targetCategory: Category? = categoryRepository.findByCategoryDescriptionIs(newCat)
-        if (targetCategory != null) {   // Category exists
+        if (targetCategory != null) {
             if (!item.isCategoryApplied(targetCategory.id!!)) {
                 item.categories += targetCategory
                 targetCategory.items += item
-                saveItem(item)
                 categoryRepository.save(targetCategory)
-            } else {
-                println("Category already applied to item $itemId")
             }
-
-        } else {    // New category, add to table
+        } else {
             val newCategory = Category(newCat)
-            // Add item to category
             newCategory.items += item
             categoryService.createCategory(newCategory)
-            // Add new category to item and save
             item.categories += newCategory
-            saveItem(item)
         }
+        var updateSrc = ItemUpdate()
+        updateSrc.categories = item.categories
+        updateItem(updateSrc, itemId)
         return item.categories
     }
 
@@ -80,8 +77,10 @@ class ItemService(val itemRepository: ItemRepository,
             newBookmark.userId = userId
             newBookmark.item = item
             item.bookmarks += newBookmark
-            saveItem(item)
         }
+        var updateSrc = ItemUpdate()
+        updateSrc.bookmarks = item.bookmarks
+        updateItem(updateSrc, itemId)
         return item.bookmarks
     }
 
@@ -91,5 +90,16 @@ class ItemService(val itemRepository: ItemRepository,
 
     fun getUsersByBookmarkedItem(itemId: UUID): List<UUID> {
         return itemRepository.getUsersByBookmarkedItem(itemId) as List<UUID>
+    }
+
+    fun queryItems(queryExample: ItemUpdate): Collection<Item> {
+        var queryItem: Item = Item()
+        queryExample.createQuery(queryItem)
+
+        val matcher: ExampleMatcher = ExampleMatcher.matching().
+                withMatcher("description", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()).
+                withIgnorePaths("id", "userEmail", "counterfeit", "inappropriate", "categories", "bookmarks")
+        val example: Example<Item> = Example.of(queryItem, matcher)
+        return itemRepository.findAll(example)
     }
 }
