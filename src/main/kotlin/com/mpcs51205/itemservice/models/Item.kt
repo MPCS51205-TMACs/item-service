@@ -41,16 +41,16 @@ class Item: Serializable {
     var endTime: Date? = null
 
     @Column
-    var buyNow: Boolean = true
+    var buyNow: Boolean? = null
 
     @Column
-    var upForAuction: Boolean = true
+    var upForAuction: Boolean? = null
 
     @Column
-    var counterfeit: Boolean = false
+    var counterfeit: Boolean? = null
 
     @Column
-    var inappropriate: Boolean = false
+    var inappropriate: Boolean? = null
 
     @ManyToMany(mappedBy = "items", cascade = [CascadeType.PERSIST])
     var categories = mutableListOf<Category>()

@@ -25,7 +25,7 @@ class ItemService(val itemRepository: ItemRepository,
         return itemRepository.findByIdOrNull(itemId) ?: throw Exception("Item not in database")
     }
 
-    fun createItem(item: Item) : Item {
+    fun createItem(item: Item): Item {
         saveItem(item)
         rabbitMessenger.sendCreateEvent(item)
         return item
@@ -41,7 +41,7 @@ class ItemService(val itemRepository: ItemRepository,
 
     fun deleteItem(itemId: UUID) = itemRepository.delete(getItemById(itemId))
 
-    fun updateItem(updateSrc: ItemUpdate, targetItem: UUID) : Item {
+    fun updateItem(updateSrc: ItemUpdate, targetItem: UUID): Item {
         val target: Item = getItemById(targetItem)
         val updateEvent = updateSrc.update(item = target)
         saveItem(item = target)
@@ -93,13 +93,24 @@ class ItemService(val itemRepository: ItemRepository,
     }
 
     fun queryItems(queryExample: ItemUpdate): Collection<Item> {
-        var queryItem: Item = Item()
+        var queryItem = Item()
         queryExample.createQuery(queryItem)
 
-        val matcher: ExampleMatcher = ExampleMatcher.matching().
-                withMatcher("description", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase()).
-                withIgnorePaths("id", "userEmail", "counterfeit", "inappropriate", "categories", "bookmarks")
+        val matcher: ExampleMatcher = ExampleMatcher.matchingAll()
+            .withMatcher("description", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+            .withIgnorePaths("id", "userEmail", "bookmarks")
         val example: Example<Item> = Example.of(queryItem, matcher)
-        return itemRepository.findAll(example)
+        var results = itemRepository.findAll(example)
+
+        if (queryItem.categories.isNotEmpty() && results.isNotEmpty()) {
+            var queryIds = mutableListOf<UUID>()
+            for (cat in queryItem.categories) { queryIds.add(cat.id!!) }
+            results.removeAll {
+                var resultIds = mutableListOf<UUID>()
+                for (cat in it.categories) { resultIds.add(cat.id!!) }
+                !resultIds.containsAll(queryIds)
+            }
+        }
+        return results
     }
 }
