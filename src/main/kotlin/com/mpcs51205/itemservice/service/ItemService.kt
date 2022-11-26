@@ -31,22 +31,23 @@ class ItemService(val itemRepository: ItemRepository,
     }
 
     fun createItem(item: Item): Item {
-        val headers = org.springframework.http.HttpHeaders()
-        val restTemplate = RestTemplate()
-        headers.contentType = MediaType.APPLICATION_JSON
+        saveItem(item)
+        rabbitMessenger.sendCreateEvent(item)
+        return item
+        // val headers = org.springframework.http.HttpHeaders()
+        // val restTemplate = RestTemplate()
+        // headers.contentType = MediaType.APPLICATION_JSON
 
-        val payload = AuctionItemTemplate()
-        payload.createFromItem(item)
+        // val payload = AuctionItemTemplate()
+        // payload.createFromItem(item)
 
-        val request: HttpEntity<Serializable> = HttpEntity<Serializable>(payload, headers)
-        var response = restTemplate.exchange(auctionPostUrl, HttpMethod.POST, request, ResponseEntity::class.java)
-        if (response.statusCode.is2xxSuccessful) {
-            saveItem(item)
-            rabbitMessenger.sendCreateEvent(item)
-            return item
-        } else {
-            throw Exception("Auction invalidated item creation")
-        }
+        // val request: HttpEntity<Serializable> = HttpEntity<Serializable>(payload, headers)
+        // var response = restTemplate.exchange(auctionPostUrl, HttpMethod.POST, request, ResponseEntity::class.java)
+        // if (response.statusCode.is2xxSuccessful) {
+
+        // } else {
+        //     throw Exception("Auction invalidated item creation")
+        // }
     }
 
     fun saveItem(item: Item) {

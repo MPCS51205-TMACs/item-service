@@ -12,7 +12,7 @@ spring:
       exchange-create: item.create
       exchange-update: item.update
       exchange-delete: item.delete
-    host: rabbitmq-item
+    host: rabbitmq-server
   sql:
     init:
       mode: always
