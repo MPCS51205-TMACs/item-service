@@ -1,13 +1,36 @@
+version: "2"
 services:
+  item-service:
+    build:
+      context: .
+    image: item-service:latest
+    container_name: item-service
+    hostname: item-service
+    restart: on-failure
+    ports:
+      - "8088:8088"
+    volumes:
+      - "./src:/build/src"
+      - "./target:/build/target:cached"
+    command: "mvn spring-boot:run"
+    depends_on:
+      - postgres
+      - rabbitmq
+    networks:
+      - my-application-network
+
   postgres:
     image: postgres
     container_name: postgres-item
     ports:
-      - 5432:5432
+      - "5432:5432"
     environment:
       POSTGRES_USER: item-service
       POSTGRES_PASSWORD: item-service
       POSTGRES_DB: item
+    networks:
+      - my-application-network
+
   rabbitmq:
     image: rabbitmq:3-management
     container_name: rabbitmq-item
@@ -15,3 +38,9 @@ services:
     ports:
       - "15672:15672"
       - "5672:5672"
+    networks:
+      - my-application-network
+
+networks:
+  my-application-network:
+    driver: bridge

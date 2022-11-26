@@ -14,6 +14,7 @@ class Bookmark: Serializable {
     @GenericGenerator(name = "uuid2", strategy = "uuid2")
     @GeneratedValue(strategy = GenerationType.IDENTITY, generator = "uuid2")
     @Column(nullable = false)
+    @JsonIgnore
     var id: UUID? = null
 
     @Column(nullable = false)

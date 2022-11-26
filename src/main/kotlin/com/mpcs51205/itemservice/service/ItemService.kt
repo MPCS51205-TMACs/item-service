@@ -39,7 +39,10 @@ class ItemService(val itemRepository: ItemRepository,
         }
     }
 
-    fun deleteItem(itemId: UUID) = itemRepository.delete(getItemById(itemId))
+    fun deleteItem(itemId: UUID) {
+        itemRepository.delete(getItemById(itemId))
+        rabbitMessenger.sendDeleteEvent(itemId)
+    }
 
     fun updateItem(updateSrc: ItemUpdate, targetItem: UUID): Item {
         val target: Item = getItemById(targetItem)
@@ -103,11 +106,11 @@ class ItemService(val itemRepository: ItemRepository,
         var results = itemRepository.findAll(example)
 
         if (queryItem.categories.isNotEmpty() && results.isNotEmpty()) {
-            var queryIds = mutableListOf<UUID>()
-            for (cat in queryItem.categories) { queryIds.add(cat.id!!) }
+            var queryIds = mutableListOf<String>()
+            for (cat in queryItem.categories) { queryIds.add(cat.categoryDescription!!) }
             results.removeAll {
-                var resultIds = mutableListOf<UUID>()
-                for (cat in it.categories) { resultIds.add(cat.id!!) }
+                var resultIds = mutableListOf<String>()
+                for (cat in it.categories) { resultIds.add(cat.categoryDescription!!) }
                 !resultIds.containsAll(queryIds)
             }
         }

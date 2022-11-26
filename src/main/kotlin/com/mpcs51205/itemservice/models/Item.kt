@@ -3,8 +3,6 @@ package com.mpcs51205.itemservice.models
 
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.hibernate.annotations.GenericGenerator
-import org.springframework.data.domain.Example
-import java.awt.print.Book
 import java.io.Serializable
 import java.util.*
 import javax.persistence.*
@@ -20,9 +18,9 @@ class Item: Serializable {
     var id: UUID? = null
 
     @Column(nullable = false)
-    var userEmail: String? = null
+    var userId: UUID? = null
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     var description: String? = null
 
     @Column(nullable = false)
@@ -79,7 +77,7 @@ class Item: Serializable {
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 class ItemUpdate: Serializable {
-    var userEmail: String? = null
+    var userId: UUID? = null
     var price: Double? = null
     var quantity: Int? = null
     var startTime: Date? = null
@@ -94,7 +92,7 @@ class ItemUpdate: Serializable {
     var bookmarks: MutableList<Bookmark>? = null
 
     fun update(item: Item) : ItemUpdateEvent {
-        item.userEmail = this.userEmail ?: item.userEmail
+        item.userId = this.userId ?: item.userId
         item.price = this.price ?: item.price
         item.quantity = this.quantity ?: item.quantity
         item.startTime = this.startTime ?: item.startTime
@@ -112,7 +110,7 @@ class ItemUpdate: Serializable {
     }
 
     fun createQuery(item: Item) {
-        item.userEmail = this.userEmail ?: item.userEmail
+        item.userId = this.userId ?: item.userId
         item.price = this.price ?: item.price
         item.quantity = this.quantity ?: item.quantity
         item.startTime = this.startTime ?: item.startTime

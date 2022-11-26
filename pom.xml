@@ -65,24 +65,12 @@
 			<artifactId>spring-rabbit-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
-		<dependency>
-			<groupId>io.github.nefilim.kjwt</groupId>
-			<artifactId>kjwt-core</artifactId>
-			<version>0.5.3</version>
-			<scope>compile</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>io.arrow-kt</groupId>
-			<artifactId>arrow-core</artifactId>
-			<version>1.1.4-alpha.10</version>
-		</dependency>
 	</dependencies>
 
 	<build>
 		<sourceDirectory>${project.basedir}/src/main/kotlin</sourceDirectory>
 		<testSourceDirectory>${project.basedir}/src/test/kotlin</testSourceDirectory>
+		<finalName>item-service</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
