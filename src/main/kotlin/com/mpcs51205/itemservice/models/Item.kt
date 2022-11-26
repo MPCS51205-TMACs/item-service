@@ -127,3 +127,19 @@ class ItemUpdate: Serializable {
 }
 
 class ItemUpdateEvent(val itemId: UUID, val update: ItemUpdate): Serializable
+
+class AuctionItemTemplate: Serializable {
+    lateinit var itemId: UUID
+    lateinit var sellerUserId: UUID
+    lateinit var startTime: String
+    lateinit var endTime: String
+    var startPriceInCents: Int? = null
+
+    fun createFromItem(item: Item) {
+        this.itemId = item.id!!
+        this.sellerUserId = item.userId!!
+        this.startTime = item.startTime.toString()
+        this.endTime = item.endTime.toString()
+        this.startPriceInCents = (item.price!! * 100).toInt()
+    }
+}
