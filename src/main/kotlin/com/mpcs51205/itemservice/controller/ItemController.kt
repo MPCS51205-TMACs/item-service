@@ -17,7 +17,7 @@ class ItemController(val itemService: ItemService) {
     fun getItem(@PathVariable itemId: UUID): Item = itemService.getItemById(itemId)
 
     @GetMapping("/query")
-    fun queryItems(@RequestBody queryExample: ItemUpdate): Collection<Item> = itemService.queryItems(queryExample)
+    fun queryItems(@RequestBody queryExample: Item): Collection<Item> = itemService.queryItems(queryExample)
 
     @GetMapping("/bookmark/byUser:{userId}")
     fun getBookmarkedItemsByUser(@PathVariable userId: UUID): Collection<Item> =
@@ -34,9 +34,9 @@ class ItemController(val itemService: ItemService) {
     fun updateItem(@RequestBody itemUpdate: ItemUpdate, @PathVariable itemId: UUID) =
         itemService.updateItem(itemUpdate, itemId)
 
-    @PutMapping("/{itemId}/{newCat}")
-    fun addCategoryToItem(@PathVariable itemId: UUID, @PathVariable newCat: String) =
-        itemService.addCategoryToItem(itemId, newCat)
+    @PutMapping("/{itemId}/{newCategoryName}")
+    fun addCategoryToItem(@PathVariable itemId: UUID, @PathVariable newCategoryName: String) =
+        itemService.addCategoryToItem(itemId, newCategoryName)
 
     @PutMapping("/bookmark/{itemId}/{userId}")
     fun addBookmarkToItem(@PathVariable itemId: UUID, @PathVariable userId: UUID) =

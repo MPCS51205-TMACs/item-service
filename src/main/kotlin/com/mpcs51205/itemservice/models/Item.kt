@@ -1,12 +1,9 @@
 package com.mpcs51205.itemservice.models
 
 import com.fasterxml.jackson.annotation.JsonFormat
-import com.fasterxml.jackson.annotation.JsonInclude
 import org.hibernate.annotations.GenericGenerator
-import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.persistence.*
 
@@ -78,49 +75,7 @@ class Item: Serializable {
         }
         return false
     }
-}
-
-@JsonInclude(JsonInclude.Include.NON_NULL)
-class ItemUpdate: Serializable {
-    var userId: UUID? = null
-    var price: Double? = null
-    var quantity: Int? = null
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
-    var startTime: LocalDateTime? = null
-
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
-    var endTime: LocalDateTime? = null
-
-    var shippingCosts: Double? = null
-    var description: String? = null
-    var buyNow: Boolean? = null
-    var upForAuction: Boolean? = null
-    var counterfeit: Boolean? = null
-    var inappropriate: Boolean? = null
-    var categories: MutableList<Category>? = null
-    var bookmarks: MutableList<Bookmark>? = null
-
-    fun update(item: Item) : ItemUpdateEvent {
-        item.userId = this.userId ?: item.userId
-        item.price = this.price ?: item.price
-        item.quantity = this.quantity ?: item.quantity
-        item.startTime = this.startTime ?: item.startTime
-        item.endTime = this.endTime ?: item.endTime
-        item.shippingCosts = this.shippingCosts ?: item.shippingCosts
-        item.description = this.description ?: item.description
-        item.buyNow = this.buyNow ?: item.buyNow
-        item.upForAuction = this.upForAuction ?: item.upForAuction
-        item.counterfeit = this.counterfeit ?: item.counterfeit
-        item.inappropriate = this.inappropriate ?: item.inappropriate
-        item.categories = this.categories ?: item.categories
-        item.bookmarks = this.bookmarks ?: item.bookmarks
-
-        return ItemUpdateEvent(item.id!!, this)
-    }
-
     fun createQuery(item: Item) {
-        item.userId = this.userId ?: item.userId
         item.price = this.price ?: item.price
         item.quantity = this.quantity ?: item.quantity
         item.startTime = this.startTime ?: item.startTime
@@ -131,26 +86,7 @@ class ItemUpdate: Serializable {
         item.upForAuction = this.upForAuction ?: item.upForAuction
         item.counterfeit = this.counterfeit ?: item.counterfeit
         item.inappropriate = this.inappropriate ?: item.inappropriate
-        item.categories = this.categories ?: item.categories
-        item.bookmarks = this.bookmarks ?: item.bookmarks
-    }
-}
-
-class ItemUpdateEvent(val itemId: UUID, val update: ItemUpdate): Serializable
-
-class AuctionItemTemplate: Serializable {
-    var itemId: UUID? = null
-    var sellerUserId: UUID? = null
-    var startTime: String? = null
-    var endTime: String? = null
-    var startPriceInCents: Int? = null
-
-    fun createFromItem(item: Item) {
-        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
-        this.itemId = item.id!!
-        this.sellerUserId = item.userId!!
-        this.startTime = item.startTime?.format(formatter)
-        this.endTime = item.endTime?.format(formatter)
-        this.startPriceInCents = (item.price!! * 100).toInt()
+        item.categories = this.categories
+        item.bookmarks = this.bookmarks
     }
 }

@@ -11,10 +11,8 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.http.HttpEntity
 import org.springframework.http.HttpMethod
 import org.springframework.http.MediaType
-import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
-import java.io.Serializable
 import java.util.*
 
 @Service
@@ -24,11 +22,12 @@ class ItemService(val itemRepository: ItemRepository,
                   val rabbitMessenger: RabbitPublisher) {
 
     fun getItemById(itemId: UUID): Item {
-        return itemRepository.findByIdOrNull(itemId) ?: throw Exception("Item not in database")
+        return itemRepository.findByIdOrNull(itemId) ?: throw Exception("Item $itemId not in database.")
     }
 
     fun createItem(item: Item): Item {
         // Generate unique item ID first
+
         saveItem(item)
 
         // Set up request body and headers
@@ -36,34 +35,49 @@ class ItemService(val itemRepository: ItemRepository,
         val restTemplate = RestTemplate()
         headers.contentType = MediaType.APPLICATION_JSON
 
-        var payload = AuctionItemTemplate()
+        var payload = AuctionItem()
         payload.createFromItem(item)
-//        println("PAYLOAD: ${payload.itemId}, ${payload.sellerUserId}, ${payload.startTime}, " +
-//                "${payload.endTime}, ${payload.startPriceInCents}")
 
-        val request: HttpEntity<AuctionItemTemplate> = HttpEntity<AuctionItemTemplate>(payload, headers)
-//        var response = restTemplate.postForObject("http://localhost:10000/api/v1/Auctions/", request, ResponseEntity::class.java)
-        var response = restTemplate.exchange("http://auctions-service:10000/api/v1/Auctions/", HttpMethod.POST, request, AuctionItemTemplate::class.java)
+        val request: HttpEntity<AuctionItem> = HttpEntity<AuctionItem>(payload, headers)
+        var response = restTemplate.exchange("http://auctions-service:10000/api/v1/Auctions/",
+            HttpMethod.POST, request, AuctionItem::class.java)
         if (response.statusCode.is2xxSuccessful) {
             rabbitMessenger.sendCreateEvent(item)
             return item
         } else {
             deleteItem(item.id!!)
-            throw Exception("Auction invalidated item creation")
+            throw Exception("Auction invalidated item creation.")
         }
     }
 
     fun saveItem(item: Item) {
         try {
             itemRepository.save(item)
-        } catch (e: DataIntegrityViolationException) {
-            throw e
+        } catch (e: Exception) {
+            throw Exception(e.message)
         }
     }
 
     fun deleteItem(itemId: UUID) {
-        itemRepository.delete(getItemById(itemId))
-        rabbitMessenger.sendDeleteEvent(itemId)
+        val item: Item = getItemById(itemId)
+
+        // Set up request body and headers
+        val headers = org.springframework.http.HttpHeaders()
+        val restTemplate = RestTemplate()
+        headers.contentType = MediaType.APPLICATION_JSON
+
+        val payload = AuctionDeleteItem(item.userId.toString())
+        val request: HttpEntity<AuctionDeleteItem> = HttpEntity<AuctionDeleteItem>(payload, headers)
+        var response = restTemplate.exchange("http://auctions-service:10000/api/v1/cancelAuction/${itemId}",
+            HttpMethod.POST, request, AuctionItem::class.java)
+
+        if (response.statusCode.is2xxSuccessful) {
+            itemRepository.delete(getItemById(itemId))
+            rabbitMessenger.sendDeleteEvent(itemId)
+
+        } else {
+            throw Exception("Auction invalidated item deletion")
+        }
     }
 
     fun updateItem(updateSrc: ItemUpdate, targetItem: UUID): Item {
@@ -74,9 +88,9 @@ class ItemService(val itemRepository: ItemRepository,
         return target
     }
 
-    fun addCategoryToItem(itemId: UUID, newCat: String): List<Category> {
+    fun addCategoryToItem(itemId: UUID, categoryName: String): List<Category> {
         val item: Item = getItemById(itemId)
-        val targetCategory: Category? = categoryRepository.findByCategoryDescriptionIs(newCat)
+        val targetCategory: Category? = categoryRepository.findByCategoryDescriptionIs(categoryName)
         if (targetCategory != null) {
             if (!item.isCategoryApplied(targetCategory.id!!)) {
                 item.categories += targetCategory
@@ -84,14 +98,12 @@ class ItemService(val itemRepository: ItemRepository,
                 categoryRepository.save(targetCategory)
             }
         } else {
-            val newCategory = Category(newCat)
+            val newCategory = Category(categoryName)
             newCategory.items += item
             categoryService.createCategory(newCategory)
             item.categories += newCategory
         }
-        var updateSrc = ItemUpdate()
-        updateSrc.categories = item.categories
-        updateItem(updateSrc, itemId)
+        rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
         return item.categories
     }
 
@@ -103,9 +115,7 @@ class ItemService(val itemRepository: ItemRepository,
             newBookmark.item = item
             item.bookmarks += newBookmark
         }
-        var updateSrc = ItemUpdate()
-        updateSrc.bookmarks = item.bookmarks
-        updateItem(updateSrc, itemId)
+        rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
         return item.bookmarks
     }
 
@@ -117,7 +127,7 @@ class ItemService(val itemRepository: ItemRepository,
         return itemRepository.getUsersByBookmarkedItem(itemId) as List<UUID>
     }
 
-    fun queryItems(queryExample: ItemUpdate): Collection<Item> {
+    fun queryItems(queryExample: Item): Collection<Item> {
         var queryItem = Item()
         queryExample.createQuery(queryItem)
 

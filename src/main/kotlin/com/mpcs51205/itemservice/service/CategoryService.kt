@@ -11,11 +11,12 @@ import java.util.*
 class CategoryService(val categoryRepository: CategoryRepository) {
 
     fun getCategoryById(catId: UUID): Category {
-        return categoryRepository.findByIdOrNull(catId) ?: throw Exception("No such category.")
+        return categoryRepository.findByIdOrNull(catId) ?: throw Exception("Category does not exist in database.")
     }
 
     fun createCategory(category: Category): Category {
         saveCategory(category)
+        println("Created category with name: ${category.categoryDescription}")
         return category
     }
 
@@ -23,17 +24,25 @@ class CategoryService(val categoryRepository: CategoryRepository) {
         try {
             categoryRepository.save(category)
         } catch (e: Exception) {
-            throw e
+            throw Exception(e.message)
         }
     }
 
-    fun deleteCategory(catId: UUID) = categoryRepository.delete(getCategoryById(catId))
+    fun deleteCategory(catId: UUID) {
+        try {
+            categoryRepository.delete(getCategoryById(catId))
+            println("Deleted category successfully.")
+        } catch (e: Exception) {
+            throw Exception("Problem deleting category from database.")
+        }
+    }
 
     fun modifyCategory(catToModify: UUID, newDescription: String): Category {
         val toModify: Category = getCategoryById(catToModify)
         try {
             toModify.categoryDescription = newDescription
             saveCategory(toModify)
+            println("Successfully modified category to '${newDescription}'")
             return toModify
         } catch (e: Exception){
             throw Exception("Cannot modify category ${catToModify}.")
