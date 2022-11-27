@@ -1,9 +1,12 @@
 package com.mpcs51205.itemservice.models
 
-
+import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonInclude
 import org.hibernate.annotations.GenericGenerator
+import org.springframework.format.annotation.DateTimeFormat
 import java.io.Serializable
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.*
 import javax.persistence.*
 
@@ -33,10 +36,12 @@ class Item: Serializable {
     var shippingCosts: Double? = null
 
     @Column(nullable = false)
-    var startTime: Date? = null
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS", shape = JsonFormat.Shape.STRING)
+    var startTime: LocalDateTime? = null
 
     @Column(nullable = false)
-    var endTime: Date? = null
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS", shape = JsonFormat.Shape.STRING)
+    var endTime: LocalDateTime? = null
 
     @Column
     var buyNow: Boolean? = null
@@ -80,8 +85,13 @@ class ItemUpdate: Serializable {
     var userId: UUID? = null
     var price: Double? = null
     var quantity: Int? = null
-    var startTime: Date? = null
-    var endTime: Date? = null
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
+    var startTime: LocalDateTime? = null
+
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS")
+    var endTime: LocalDateTime? = null
+
     var shippingCosts: Double? = null
     var description: String? = null
     var buyNow: Boolean? = null
@@ -129,17 +139,18 @@ class ItemUpdate: Serializable {
 class ItemUpdateEvent(val itemId: UUID, val update: ItemUpdate): Serializable
 
 class AuctionItemTemplate: Serializable {
-    lateinit var itemId: UUID
-    lateinit var sellerUserId: UUID
-    lateinit var startTime: String
-    lateinit var endTime: String
+    var itemId: UUID? = null
+    var sellerUserId: UUID? = null
+    var startTime: String? = null
+    var endTime: String? = null
     var startPriceInCents: Int? = null
 
     fun createFromItem(item: Item) {
+        var formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSSSSS")
         this.itemId = item.id!!
         this.sellerUserId = item.userId!!
-        this.startTime = item.startTime.toString()
-        this.endTime = item.endTime.toString()
+        this.startTime = item.startTime?.format(formatter)
+        this.endTime = item.endTime?.format(formatter)
         this.startPriceInCents = (item.price!! * 100).toInt()
     }
 }

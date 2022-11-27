@@ -1,7 +1,7 @@
 spring:
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: create-drop
   datasource:
     username: item-service
     password: item-service

@@ -23,31 +23,34 @@ class ItemService(val itemRepository: ItemRepository,
                   val categoryService: CategoryService,
                   val rabbitMessenger: RabbitPublisher) {
 
-    private val auctionPostUrl: String = "auctions-server:10000/api/v1/Auctions/"
-
-
     fun getItemById(itemId: UUID): Item {
         return itemRepository.findByIdOrNull(itemId) ?: throw Exception("Item not in database")
     }
 
     fun createItem(item: Item): Item {
+        // Generate unique item ID first
         saveItem(item)
-        rabbitMessenger.sendCreateEvent(item)
-        return item
-        // val headers = org.springframework.http.HttpHeaders()
-        // val restTemplate = RestTemplate()
-        // headers.contentType = MediaType.APPLICATION_JSON
 
-        // val payload = AuctionItemTemplate()
-        // payload.createFromItem(item)
+        // Set up request body and headers
+        val headers = org.springframework.http.HttpHeaders()
+        val restTemplate = RestTemplate()
+        headers.contentType = MediaType.APPLICATION_JSON
 
-        // val request: HttpEntity<Serializable> = HttpEntity<Serializable>(payload, headers)
-        // var response = restTemplate.exchange(auctionPostUrl, HttpMethod.POST, request, ResponseEntity::class.java)
-        // if (response.statusCode.is2xxSuccessful) {
+        var payload = AuctionItemTemplate()
+        payload.createFromItem(item)
+//        println("PAYLOAD: ${payload.itemId}, ${payload.sellerUserId}, ${payload.startTime}, " +
+//                "${payload.endTime}, ${payload.startPriceInCents}")
 
-        // } else {
-        //     throw Exception("Auction invalidated item creation")
-        // }
+        val request: HttpEntity<AuctionItemTemplate> = HttpEntity<AuctionItemTemplate>(payload, headers)
+//        var response = restTemplate.postForObject("http://localhost:10000/api/v1/Auctions/", request, ResponseEntity::class.java)
+        var response = restTemplate.exchange("http://auctions-service:10000/api/v1/Auctions/", HttpMethod.POST, request, AuctionItemTemplate::class.java)
+        if (response.statusCode.is2xxSuccessful) {
+            rabbitMessenger.sendCreateEvent(item)
+            return item
+        } else {
+            deleteItem(item.id!!)
+            throw Exception("Auction invalidated item creation")
+        }
     }
 
     fun saveItem(item: Item) {
