@@ -34,8 +34,8 @@ class ItemController(val itemService: ItemService) {
     fun updateItem(@RequestBody itemUpdate: ItemUpdate, @PathVariable itemId: UUID) =
         itemService.updateItem(itemUpdate, itemId)
 
-    @PutMapping("/{itemId}/{newCategoryName}")
-    fun addCategoryToItem(@PathVariable itemId: UUID, @PathVariable newCategoryName: String) =
+    @PutMapping("/category/{itemId}")
+    fun addCategoryToItem(@PathVariable itemId: UUID, @RequestBody newCategoryName: String) =
         itemService.addCategoryToItem(itemId, newCategoryName)
 
     @PutMapping("/bookmark/{itemId}/{userId}")

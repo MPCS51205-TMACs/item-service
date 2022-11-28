@@ -16,7 +16,7 @@ class CategoryService(val categoryRepository: CategoryRepository) {
 
     fun createCategory(category: Category): Category {
         saveCategory(category)
-        println("Created category with name: ${category.categoryDescription}")
+        println("CREATED CATEGORY: ${category.categoryDescription}")
         return category
     }
 
@@ -31,7 +31,7 @@ class CategoryService(val categoryRepository: CategoryRepository) {
     fun deleteCategory(catId: UUID) {
         try {
             categoryRepository.delete(getCategoryById(catId))
-            println("Deleted category successfully.")
+            println("DELETED CATEGORY.")
         } catch (e: Exception) {
             throw Exception("Problem deleting category from database.")
         }

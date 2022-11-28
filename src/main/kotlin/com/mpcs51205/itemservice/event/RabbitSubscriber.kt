@@ -34,7 +34,6 @@ class RabbitSubscriber(val itemService: ItemService) {
     }
 }
 
-
 class UserDelete{
     lateinit var userId: UUID
 }

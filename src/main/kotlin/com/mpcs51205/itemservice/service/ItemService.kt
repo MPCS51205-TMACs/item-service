@@ -107,6 +107,7 @@ class ItemService(val itemRepository: ItemRepository,
             categoryService.createCategory(newCategory)
             item.categories += newCategory
         }
+        saveItem(item)
         rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
         return item.categories
     }
@@ -117,8 +118,10 @@ class ItemService(val itemRepository: ItemRepository,
             val newBookmark = Bookmark()
             newBookmark.userId = userId
             newBookmark.item = item
+            println("CREATED A NEW BOOKMARK FOR USER: $userId")
             item.bookmarks += newBookmark
         }
+        saveItem(item)
         rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
         return item.bookmarks
     }
