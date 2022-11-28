@@ -33,6 +33,11 @@ class ItemController(val itemService: ItemService) {
     @PutMapping("/{itemId}")
     fun updateItem(@RequestBody itemUpdate: ItemUpdate, @PathVariable itemId: UUID) =
         itemService.updateItem(itemUpdate, itemId)
+    @PutMapping("/inappropriate/{itemId}")
+    fun markItemInappropriate(@PathVariable itemId: UUID) = itemService.markItemInappropriate(itemId)
+
+    @PutMapping("/counterfeit/{itemId}")
+    fun markItemCounterfeit(@PathVariable itemId: UUID) = itemService.markItemCounterfeit(itemId)
 
     @PutMapping("/category/{itemId}")
     fun addCategoryToItem(@PathVariable itemId: UUID, @RequestBody newCategoryName: String) =

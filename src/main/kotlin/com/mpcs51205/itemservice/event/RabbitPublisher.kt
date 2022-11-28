@@ -2,11 +2,8 @@ package com.mpcs51205.itemservice.event
 
 import com.mpcs51205.itemservice.models.Item
 import com.mpcs51205.itemservice.models.ItemUpdateEvent
-import org.springframework.amqp.core.FanoutExchange
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import java.io.Serializable
 import java.util.*
@@ -17,23 +14,14 @@ class RabbitPublisher {
     @Autowired
     lateinit var template: RabbitTemplate
 
-    @Value("\${spring.rabbitmq.template.exchange-create}")
-    lateinit var createExchange: String
-    @Value("\${spring.rabbitmq.template.exchange-update}")
-    lateinit var updateExchange: String
-    @Value("\${spring.rabbitmq.template.exchange-delete}")
-    lateinit var deleteExchange: String
+    @Autowired
+    lateinit var rabbitConfig: RabbitConfig
 
-    @Bean
-    fun itemCreateExchange() = FanoutExchange(createExchange, true, false)
-    @Bean
-    fun itemUpdateExchange() = FanoutExchange(updateExchange, true, false)
-    @Bean
-    fun itemDeleteExchange() = FanoutExchange(deleteExchange, true, false)
-
-    fun sendCreateEvent(item: Item) = send(exchange = createExchange, payload = item)
-    fun sendUpdateEvent(itemUpdateEvent: ItemUpdateEvent) = send(exchange = updateExchange, payload = itemUpdateEvent)
-    fun sendDeleteEvent(itemId: UUID) = send(exchange = deleteExchange, payload = itemId)
+    fun sendCreateEvent(item: Item) = send(exchange = rabbitConfig.createExchange, payload = item)
+    fun sendUpdateEvent(itemUpdateEvent: ItemUpdateEvent) = send(exchange = rabbitConfig.updateExchange, payload = itemUpdateEvent)
+    fun sendDeleteEvent(itemId: UUID) = send(exchange = rabbitConfig.deleteExchange, payload = itemId)
+    fun sendInappropriateEvent(itemId: UUID) = send(exchange = rabbitConfig.inappropriateExchange, payload = itemId)
+    fun sendCounterfeitEvent(itemId: UUID) = send(exchange = rabbitConfig.counterfeitExchange, payload = itemId)
 
     private fun send(exchange: String, payload: Serializable) {
         template.convertAndSend(exchange, "", payload)

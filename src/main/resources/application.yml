@@ -12,6 +12,8 @@ spring:
       exchange-create: item.create
       exchange-update: item.update
       exchange-delete: item.delete
+      exchange-inappropriate: item.inappropriate
+      exchange-counterfeit: item.counterfeit
     host: rabbitmq-server
   sql:
     init:

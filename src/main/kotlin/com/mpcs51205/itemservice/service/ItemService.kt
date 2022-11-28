@@ -4,7 +4,6 @@ import com.mpcs51205.itemservice.event.RabbitPublisher
 import com.mpcs51205.itemservice.models.*
 import com.mpcs51205.itemservice.repository.CategoryRepository
 import com.mpcs51205.itemservice.repository.ItemRepository
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.Example
 import org.springframework.data.domain.ExampleMatcher
 import org.springframework.data.repository.findByIdOrNull
@@ -90,6 +89,22 @@ class ItemService(val itemRepository: ItemRepository,
         saveItem(item = target)
         rabbitMessenger.sendUpdateEvent(updateEvent)
         return target
+    }
+
+    fun markItemInappropriate(itemId: UUID): UUID {
+        val target: Item = getItemById(itemId)
+        target.inappropriate = true
+        saveItem(item = target)
+        rabbitMessenger.sendInappropriateEvent(itemId)
+        return itemId
+    }
+
+    fun markItemCounterfeit(itemId: UUID): UUID {
+        val target: Item = getItemById(itemId)
+        target.counterfeit = true
+        saveItem(item = target)
+        rabbitMessenger.sendCounterfeitEvent(itemId)
+        return itemId
     }
 
     fun addCategoryToItem(itemId: UUID, categoryName: String): List<Category> {
