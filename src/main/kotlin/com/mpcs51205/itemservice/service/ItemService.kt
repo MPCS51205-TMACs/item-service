@@ -25,6 +25,10 @@ class ItemService(val itemRepository: ItemRepository,
         return itemRepository.findByIdOrNull(itemId) ?: throw Exception("Item $itemId not in database.")
     }
 
+    fun getItemsbyUserId(userId: UUID): List<UUID> {
+        return itemRepository.getItemsByUser(userId) as List<UUID>
+    }
+
     fun createItem(item: Item): Item {
         // Generate unique item ID first
 

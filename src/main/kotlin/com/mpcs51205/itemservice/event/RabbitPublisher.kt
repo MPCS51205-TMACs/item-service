@@ -2,16 +2,14 @@ package com.mpcs51205.itemservice.event
 
 import com.mpcs51205.itemservice.models.Item
 import com.mpcs51205.itemservice.models.ItemUpdateEvent
-import org.springframework.amqp.core.DirectExchange
 import org.springframework.amqp.core.FanoutExchange
-
 import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
 import java.io.Serializable
-import java.util.UUID
+import java.util.*
 
 
 @Component

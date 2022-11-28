@@ -6,42 +6,36 @@ import org.springframework.amqp.core.Binding
 import org.springframework.amqp.core.FanoutExchange
 import org.springframework.amqp.core.Queue
 import org.springframework.amqp.rabbit.annotation.RabbitListener
-import org.springframework.amqp.rabbit.core.RabbitTemplate
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter
 import org.springframework.amqp.support.converter.MessageConverter
-import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.stereotype.Component
-import java.util.UUID
+import java.util.*
 
 @Component
-class RabbitSubscriber(val itemService: ItemService, val itemRepo: ItemRepository) {
+class RabbitSubscriber(val itemService: ItemService) {
 
-    @Value("\${spring.rabbitmq.template.exchange-user-delete}")
-    lateinit var userDeleteExchange: String
-
+    @Bean
+    fun jsonMessageConverter(): MessageConverter? {
+        return Jackson2JsonMessageConverter()
+    }
     @Bean
     fun userDeleteQueue(): Queue = Queue("item-service:user.delete", true)
     @Bean
-    fun userDeleteExchange(): FanoutExchange = FanoutExchange(userDeleteExchange, true, false)
+    fun userDeleteExchange(): FanoutExchange = FanoutExchange("user.delete", true, false)
     @Bean
     fun userDeleteBinding(): Binding = Binding(userDeleteQueue().name, Binding.DestinationType.QUEUE,
-        userDeleteExchange().name, null, null)
+        userDeleteExchange().name, "", null)
 
     @RabbitListener(queues = ["item-service:user.delete"])
     fun receive(userId: UUID) {
         println("RECEIVED USER DELETION EVENT")
-        val itemsToDelete = itemRepo.getItemsByUser(userId)
+        val itemsToDelete = itemService.getItemsbyUserId(userId)
         if (itemsToDelete != null) {
-            for (item in itemsToDelete) {
-                itemService.deleteItem(item)
-                println("DELETING: $item")
+            for (itemId in itemsToDelete) {
+                itemService.deleteItem(itemId)
+                println("DELETING: $itemId")
             }
         }
-    }
-    @Bean
-    fun jsonMessageConverter(): MessageConverter? {
-        return Jackson2JsonMessageConverter()
     }
 }
