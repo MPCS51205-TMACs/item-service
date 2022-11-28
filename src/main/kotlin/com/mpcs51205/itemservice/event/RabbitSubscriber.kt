@@ -16,10 +16,6 @@ import java.util.*
 class RabbitSubscriber(val itemService: ItemService) {
 
     @Bean
-    fun jsonMessageConverter(): MessageConverter? {
-        return Jackson2JsonMessageConverter()
-    }
-    @Bean
     fun userDeleteQueue(): Queue = Queue("item-service:user.delete", true)
     @Bean
     fun userDeleteExchange(): FanoutExchange = FanoutExchange("user.delete", true, false)
@@ -28,14 +24,17 @@ class RabbitSubscriber(val itemService: ItemService) {
         userDeleteExchange().name, "", null)
 
     @RabbitListener(queues = ["item-service:user.delete"])
-    fun receive(userId: UUID) {
+    fun receive(userDelete: UserDelete) {
         println("RECEIVED USER DELETION EVENT")
-        val itemsToDelete = itemService.getItemsbyUserId(userId)
-        if (itemsToDelete != null) {
-            for (itemId in itemsToDelete) {
-                itemService.deleteItem(itemId)
-                println("DELETING: $itemId")
-            }
+        val itemsToDelete = itemService.getItemsbyUserId(userDelete.userId)
+        for (itemId in itemsToDelete) {
+            itemService.deleteItem(itemId)
+            println("DELETING: $itemId")
         }
     }
+}
+
+
+class UserDelete{
+    lateinit var userId: UUID
 }

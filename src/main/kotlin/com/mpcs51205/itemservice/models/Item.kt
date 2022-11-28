@@ -1,6 +1,9 @@
 package com.mpcs51205.itemservice.models
 
 import com.fasterxml.jackson.annotation.JsonFormat
+import com.fasterxml.jackson.databind.annotation.JsonSerialize
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import org.hibernate.annotations.GenericGenerator
 import java.io.Serializable
 import java.time.LocalDateTime
@@ -34,10 +37,12 @@ class Item: Serializable {
 
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS", shape = JsonFormat.Shape.STRING)
+    @JsonSerialize(using = LocalDateTimeSerializer::class)
     var startTime: LocalDateTime? = null
 
     @Column(nullable = false)
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss.SSSSSS", shape = JsonFormat.Shape.STRING)
+    @JsonSerialize(using = LocalDateTimeSerializer::class)
     var endTime: LocalDateTime? = null
 
     @Column
