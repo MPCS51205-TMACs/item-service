@@ -38,7 +38,7 @@ class ItemController(val itemService: ItemService) {
     fun addCategoryToItem(@PathVariable itemId: UUID, @RequestBody newCategoryName: String) =
         itemService.addCategoryToItem(itemId, newCategoryName)
 
-    @PutMapping("/bookmark/{itemId}/{userId}")
-    fun addBookmarkToItem(@PathVariable itemId: UUID, @PathVariable userId: UUID) =
+    @PutMapping("/bookmark/{itemId}")
+    fun addBookmarkToItem(@PathVariable itemId: UUID, @RequestBody userId: UUID) =
         itemService.addBookmarkToItem(itemId, userId)
 }
