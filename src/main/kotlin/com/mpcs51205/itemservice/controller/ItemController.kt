@@ -27,6 +27,9 @@ class ItemController(val itemService: ItemService) {
     fun getUsersByBookmarkedItem(@PathVariable itemId: UUID): Collection<UUID> =
         itemService.getUsersByBookmarkedItem(itemId)
 
+    @GetMapping("/list")
+    fun getItemsFromList(@RequestBody idList: List<String>): Collection<Item> = itemService.getItemsFromList(idList)
+
     @DeleteMapping("/{itemId}")
     fun deleteItem(@PathVariable itemId: UUID) = itemService.deleteItem(itemId)
 

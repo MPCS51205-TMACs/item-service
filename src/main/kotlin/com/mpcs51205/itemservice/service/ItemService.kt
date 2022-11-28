@@ -170,4 +170,8 @@ class ItemService(val itemRepository: ItemRepository,
         }
         return results
     }
+
+    fun getItemsFromList(idList: List<String>): Collection<Item> {
+        return idList.map { itemRepository.getItemById(UUID.fromString(it))!! }
+    }
 }
