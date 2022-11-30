@@ -17,7 +17,7 @@ class AuctionItem: Serializable {
         this.sellerUserId = item.userId!!
         this.startTime = item.startTime?.format(formatter)
         this.endTime = item.endTime?.format(formatter)
-        this.startPriceInCents = (item.price!! * 100).toInt()
+        this.startPriceInCents = (item.startPrice!! * 100).toInt()
     }
 }
 

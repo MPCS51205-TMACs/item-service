@@ -21,7 +21,7 @@ class ItemService(val itemRepository: ItemRepository,
                   val rabbitMessenger: RabbitPublisher) {
 
     fun getItemById(itemId: UUID): Item {
-        return itemRepository.findByIdOrNull(itemId) ?: throw Exception("Item $itemId not in database.")
+        return itemRepository.findByIdOrNull(itemId) ?: throw Exception("NOT FOUND: Item $itemId not in database.")
     }
 
     fun getItemsbyUserId(userId: UUID): List<UUID> {
@@ -30,7 +30,6 @@ class ItemService(val itemRepository: ItemRepository,
 
     fun createItem(item: Item): Item {
         // Generate unique item ID first
-
         saveItem(item)
 
         // Set up request body and headers
@@ -45,11 +44,12 @@ class ItemService(val itemRepository: ItemRepository,
         var response = restTemplate.exchange("http://auctions-service:10000/api/v1/Auctions/",
             HttpMethod.POST, request, AuctionItem::class.java)
         if (response.statusCode.is2xxSuccessful) {
+            println("ITEM CREATED: Item ${item.id} created and auction created.")
             rabbitMessenger.sendCreateEvent(item)
             return item
         } else {
             deleteItem(item.id!!)
-            throw Exception("Auction invalidated item creation.")
+            throw Exception("ITEM NOT CREATED: Auction invalidated item creation.")
         }
     }
 
@@ -75,11 +75,12 @@ class ItemService(val itemRepository: ItemRepository,
             HttpMethod.POST, request, AuctionItem::class.java)
 
         if (response.statusCode.is2xxSuccessful) {
+            println("ITEM DELETED: Item $itemId deleted successfully and auction cancelled.")
             itemRepository.delete(getItemById(itemId))
             rabbitMessenger.sendDeleteEvent(itemId)
 
         } else {
-            throw Exception("Auction invalidated item deletion")
+            throw Exception("ITEM DELETION INVALIDATED: Auction invalidated item deletion")
         }
     }
 
@@ -88,6 +89,7 @@ class ItemService(val itemRepository: ItemRepository,
         val updateEvent = updateSrc.update(item = target)
         saveItem(item = target)
         rabbitMessenger.sendUpdateEvent(updateEvent)
+        println("ITEM UPDATED")
         return target
     }
 
@@ -96,6 +98,7 @@ class ItemService(val itemRepository: ItemRepository,
         target.inappropriate = true
         saveItem(item = target)
         rabbitMessenger.sendInappropriateEvent(itemId)
+        println("MARKED INAPPROPRIATE")
         return itemId
     }
 

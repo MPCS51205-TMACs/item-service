@@ -30,7 +30,10 @@ class Item: Serializable {
     var quantity: Int? = null
 
     @Column(nullable = false)
-    var price: Double? = null
+    var price: Double? = null   // the 'Buy It Now' price
+
+    @Column(nullable = false)
+    var startPrice: Double? = null  // The lowest price for a bid
 
     @Column(nullable = false)
     var shippingCosts: Double? = null
@@ -82,6 +85,7 @@ class Item: Serializable {
     }
     fun createQuery(item: Item) {
         item.price = this.price ?: item.price
+        item.startPrice = this.startPrice ?: item.startPrice
         item.quantity = this.quantity ?: item.quantity
         item.startTime = this.startTime ?: item.startTime
         item.endTime = this.endTime ?: item.endTime
