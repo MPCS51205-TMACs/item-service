@@ -2,7 +2,6 @@ package com.mpcs51205.itemservice.models
 
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
-import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer
 import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateTimeSerializer
 import org.hibernate.annotations.GenericGenerator
 import java.io.Serializable
@@ -52,9 +51,6 @@ class Item: Serializable {
     var buyNow: Boolean? = null
 
     @Column
-    var upForAuction: Boolean? = null
-
-    @Column
     var counterfeit: Boolean? = null
 
     @Column
@@ -92,7 +88,6 @@ class Item: Serializable {
         item.shippingCosts = this.shippingCosts ?: item.shippingCosts
         item.description = this.description ?: item.description
         item.buyNow = this.buyNow ?: item.buyNow
-        item.upForAuction = this.upForAuction ?: item.upForAuction
         item.counterfeit = this.counterfeit ?: item.counterfeit
         item.inappropriate = this.inappropriate ?: item.inappropriate
         item.categories = this.categories
