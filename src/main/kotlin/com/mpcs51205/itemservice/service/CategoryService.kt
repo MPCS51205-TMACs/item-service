@@ -48,4 +48,6 @@ class CategoryService(val categoryRepository: CategoryRepository) {
             throw Exception("Cannot modify category ${catToModify}.")
         }
     }
+
+    fun getAll(ids: Collection<UUID>?) = ids?.map { getCategoryById(it) } ?: categoryRepository.findAll()
 }
