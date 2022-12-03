@@ -22,4 +22,7 @@ class CategoryController(val categoryService: CategoryService) {
 
     @DeleteMapping("/{catId}")
     fun deleteCategory(@PathVariable catId: UUID) = categoryService.deleteCategory(catId)
+
+    @GetMapping()
+    fun getCategories(@RequestParam ids: Collection<UUID>?): Collection<Category> = categoryService.getAll(ids)
 }
