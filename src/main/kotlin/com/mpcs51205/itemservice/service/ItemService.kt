@@ -197,4 +197,15 @@ class ItemService(val itemRepository: ItemRepository,
     fun getItemsFromList(idList: List<String>): Collection<Item> {
         return idList.map { itemRepository.getItemById(UUID.fromString(it))!! }
     }
+
+    fun checkoutItems(idList: List<String>) {
+        for (id in idList) {
+            itemRepository.delete(getItemById(UUID.fromString(id)))
+            println("ITEM CHECKED OUT")
+        }
+    }
+
+    fun getAllItems(): Collection<Item> {
+        return itemRepository.findAll()
+    }
 }

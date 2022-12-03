@@ -33,7 +33,7 @@ class SecurityFilter {
             .and()
             .authorizeRequests { auth ->
               auth.antMatchers("/item/counterfeit/**", "/item/inappropriate/**").hasRole("ADMIN")
-                  .antMatchers("/item/**").hasRole("USER")
+                  .antMatchers("/item/**").permitAll()
 
                     .and()
                     .oauth2ResourceServer()

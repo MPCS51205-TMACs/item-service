@@ -32,8 +32,14 @@ class ItemController(val itemService: ItemService) {
     @GetMapping("/list")
     fun getItemsFromList(@RequestBody idList: List<String>): Collection<Item> = itemService.getItemsFromList(idList)
 
+    @GetMapping("/all")
+    fun getAllItems(): Collection<Item> = itemService.getAllItems()
+
     @DeleteMapping("/{itemId}")
     fun deleteItem(@PathVariable itemId: UUID, authentication: Authentication) = itemService.deleteItem(UUID.fromString(authentication.name), itemId)
+
+    @DeleteMapping("/checkout")
+    fun checkoutItems(@RequestBody idList: List<String>) = itemService.checkoutItems(idList)
 
     @PutMapping("/{itemId}")
     fun updateItem(@RequestBody itemUpdate: ItemUpdate, @PathVariable itemId: UUID, authentication: Authentication) =
