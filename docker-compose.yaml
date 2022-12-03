@@ -8,7 +8,7 @@ services:
     hostname: item-service
     restart: on-failure
     ports:
-      - "8088:8088"
+      - "8080:8080"
     volumes:
       - "./src:/build/src"
       - "./target:/build/target:cached"

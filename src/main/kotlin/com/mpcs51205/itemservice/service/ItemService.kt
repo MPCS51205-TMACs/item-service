@@ -37,60 +37,72 @@ class ItemService(val itemRepository: ItemRepository,
         val restTemplate = RestTemplate()
         headers.contentType = MediaType.APPLICATION_JSON
 
-        var payload = AuctionItem()
+        val payload = AuctionItem()
         payload.createFromItem(item)
 
         val request: HttpEntity<AuctionItem> = HttpEntity<AuctionItem>(payload, headers)
-        var response = restTemplate.exchange("http://auctions-service:10000/api/v1/Auctions/",
-            HttpMethod.POST, request, AuctionItem::class.java)
-        if (response.statusCode.is2xxSuccessful) {
-            println("ITEM CREATED: Item ${item.id} created and auction created.")
-            rabbitMessenger.sendCreateEvent(item)
-            return item
-        } else {
-            deleteItem(item.id!!)
-            throw Exception("ITEM NOT CREATED: Auction invalidated item creation.")
+        try {
+            val response = restTemplate.exchange("http://auctions-service:10000/api/v1/Auctions/",
+                HttpMethod.POST, request, AuctionItem::class.java)
+            if (response.statusCode.is2xxSuccessful) {
+                println("ITEM CREATED: Item ${item.id} created and auction created.")
+                rabbitMessenger.sendCreateEvent(item)
+                return item
+            }
+        } catch(e: Exception) {
+            itemRepository.delete(item)
+            throw Exception("ITEM NOT CREATED: Auction invalidated item creation. Reason: ${e.message}")
         }
+        return Item()
     }
 
     fun saveItem(item: Item) {
         try {
             itemRepository.save(item)
         } catch (e: Exception) {
-            throw Exception(e.message)
+            throw Exception("ERROR SAVING ITEM: ${e.message}")
         }
     }
 
-    fun deleteItem(itemId: UUID) {
+    fun deleteItem(userId: UUID, itemId: UUID) {
         val item: Item = getItemById(itemId)
+        if (userId == item.userId) {
+            // Set up request body and headers
+            val headers = org.springframework.http.HttpHeaders()
+            val restTemplate = RestTemplate()
+            headers.contentType = MediaType.APPLICATION_JSON
 
-        // Set up request body and headers
-        val headers = org.springframework.http.HttpHeaders()
-        val restTemplate = RestTemplate()
-        headers.contentType = MediaType.APPLICATION_JSON
-
-        val payload = AuctionDeleteItem(item.userId.toString())
-        val request: HttpEntity<AuctionDeleteItem> = HttpEntity<AuctionDeleteItem>(payload, headers)
-        var response = restTemplate.exchange("http://auctions-service:10000/api/v1/cancelAuction/${itemId}",
-            HttpMethod.POST, request, AuctionItem::class.java)
-
-        if (response.statusCode.is2xxSuccessful) {
-            println("ITEM DELETED: Item $itemId deleted successfully and auction cancelled.")
-            itemRepository.delete(getItemById(itemId))
-            rabbitMessenger.sendDeleteEvent(itemId)
-
+            val payload = AuctionDeleteItem(item.userId.toString())
+            val request: HttpEntity<AuctionDeleteItem> = HttpEntity<AuctionDeleteItem>(payload, headers)
+            try {
+                val response = restTemplate.exchange(
+                    "http://auctions-service:10000/api/v1/cancelAuction/${itemId}",
+                    HttpMethod.POST, request, AuctionItem::class.java
+                )
+                if (response.statusCode.is2xxSuccessful) {
+                    println("ITEM DELETED: Item $itemId deleted successfully and auction cancelled.")
+                    itemRepository.delete(getItemById(itemId))
+                    rabbitMessenger.sendDeleteEvent(itemId)
+                }
+            } catch (e: Exception) {
+                throw Exception("ITEM DELETION INVALIDATED: Auction invalidated item deletion")
+            }
         } else {
-            throw Exception("ITEM DELETION INVALIDATED: Auction invalidated item deletion")
+            throw Exception("NOT AUTHORIZED TO DELETE ITEM")
         }
     }
 
-    fun updateItem(updateSrc: ItemUpdate, targetItem: UUID): Item {
+    fun updateItem(updateSrc: ItemUpdate, targetItem: UUID, userId: UUID): Item {
         val target: Item = getItemById(targetItem)
-        val updateEvent = updateSrc.update(item = target)
-        saveItem(item = target)
-        rabbitMessenger.sendUpdateEvent(updateEvent)
-        println("ITEM UPDATED")
-        return target
+        if (userId == target.userId) {
+            val updateEvent = updateSrc.update(item = target)
+            saveItem(item = target)
+            rabbitMessenger.sendUpdateEvent(updateEvent)
+            println("ITEM UPDATED")
+            return target
+        } else {
+            throw Exception("NOT AUTHORIZED TO UPDATE ITEM")
+        }
     }
 
     fun markItemInappropriate(itemId: UUID): UUID {
@@ -110,38 +122,46 @@ class ItemService(val itemRepository: ItemRepository,
         return itemId
     }
 
-    fun addCategoryToItem(itemId: UUID, categoryName: String): List<Category> {
+    fun addCategoryToItem(itemId: UUID, categoryName: String, userId: UUID): List<Category> {
         val item: Item = getItemById(itemId)
-        val targetCategory: Category? = categoryRepository.findByCategoryDescriptionIs(categoryName)
-        if (targetCategory != null) {
-            if (!item.isCategoryApplied(targetCategory.id!!)) {
-                item.categories += targetCategory
-                targetCategory.items += item
-                categoryRepository.save(targetCategory)
+        if (item.userId == userId) {
+            val targetCategory: Category? = categoryRepository.findByCategoryDescriptionIs(categoryName)
+            if (targetCategory != null) {
+                if (!item.isCategoryApplied(targetCategory.id!!)) {
+                    item.categories += targetCategory
+                    targetCategory.items += item
+                    categoryRepository.save(targetCategory)
+                }
+            } else {
+                val newCategory = Category(categoryName)
+                newCategory.items += item
+                categoryService.createCategory(newCategory)
+                item.categories += newCategory
             }
+            saveItem(item)
+            rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
+            return item.categories
         } else {
-            val newCategory = Category(categoryName)
-            newCategory.items += item
-            categoryService.createCategory(newCategory)
-            item.categories += newCategory
+            throw Exception("NOT AUTHORIZED TO UPDATE ITEM")
         }
-        saveItem(item)
-        rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
-        return item.categories
     }
 
     fun addBookmarkToItem(itemId: UUID, userId: UUID): List<Bookmark> {
         val item: Item = getItemById(itemId)
-        if (!item.isBookmarkApplied(userId)) {
-            val newBookmark = Bookmark()
-            newBookmark.userId = userId
-            newBookmark.item = item
-            println("CREATED A NEW BOOKMARK FOR USER: $userId")
-            item.bookmarks += newBookmark
+        if (item.userId == userId) {
+            if (!item.isBookmarkApplied(userId)) {
+                val newBookmark = Bookmark()
+                newBookmark.userId = userId
+                newBookmark.item = item
+                println("CREATED A NEW BOOKMARK FOR USER: $userId")
+                item.bookmarks += newBookmark
+            }
+            saveItem(item)
+            rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
+            return item.bookmarks
+        } else {
+            throw Exception("NOT AUTHORIZED TO UPDATE ITEM")
         }
-        saveItem(item)
-        rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
-        return item.bookmarks
     }
 
     fun getBookmarkedItems(userId: UUID): List<Item> {

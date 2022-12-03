@@ -21,3 +21,6 @@ spring:
       platform: postgres
 server:
   port: 8088
+
+jwt:
+  secret: G+KbPeShVmYq3t6w9z$C&F)J@McQfTjW
