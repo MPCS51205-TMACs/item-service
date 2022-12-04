@@ -200,8 +200,10 @@ class ItemService(val itemRepository: ItemRepository,
 
     fun checkoutItems(idList: List<String>) {
         for (id in idList) {
-            itemRepository.delete(getItemById(UUID.fromString(id)))
-            println("ITEM CHECKED OUT")
+            var item = getItemById(UUID.fromString(id))
+            item.bought = true
+            saveItem(item)
+            println("ITEM $id CHECKED OUT")
         }
     }
 

@@ -41,7 +41,7 @@ class ItemController(val itemService: ItemService) {
     @DeleteMapping("/{itemId}")
     fun deleteItem(@PathVariable itemId: UUID, authentication: Authentication) = itemService.deleteItem(UUID.fromString(authentication.name), itemId)
 
-    @DeleteMapping("/checkout")
+    @PutMapping("/checkout")
     fun checkoutItems(@RequestBody idList: List<String>) = itemService.checkoutItems(idList)
 
     @PutMapping("/{itemId}")

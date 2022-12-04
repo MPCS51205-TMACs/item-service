@@ -51,6 +51,9 @@ class Item: Serializable {
     var buyNow: Boolean? = null
 
     @Column
+    var bought: Boolean? = null
+
+    @Column
     var counterfeit: Boolean? = null
 
     @Column
@@ -88,6 +91,7 @@ class Item: Serializable {
         item.shippingCosts = this.shippingCosts ?: item.shippingCosts
         item.description = this.description ?: item.description
         item.buyNow = this.buyNow ?: item.buyNow
+        item.bought = this.bought ?: item.bought
         item.counterfeit = this.counterfeit ?: item.counterfeit
         item.inappropriate = this.inappropriate ?: item.inappropriate
         item.categories = this.categories
