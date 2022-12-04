@@ -49,5 +49,6 @@ class CategoryService(val categoryRepository: CategoryRepository) {
         }
     }
 
-    fun getAll(ids: Collection<UUID>?) = ids?.map { getCategoryById(it) } ?: categoryRepository.findAll()
+    fun getAll(ids: Collection<UUID>?) = (ids?.map { categoryRepository.findByIdOrNull(it) }?.filterNotNull()
+        ?: categoryRepository.findAll())
 }
