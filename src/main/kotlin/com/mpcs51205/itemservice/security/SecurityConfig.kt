@@ -32,8 +32,8 @@ class SecurityFilter {
             .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             .and()
             .authorizeRequests { auth ->
-              auth.antMatchers("/item/counterfeit/**", "/item/inappropriate/**").hasRole("ADMIN")
-                  .antMatchers("/item/**").permitAll()
+              auth.antMatchers("/item/**").permitAll()
+//                  .antMatchers("/item/**").permitAll()
 
                     .and()
                     .oauth2ResourceServer()

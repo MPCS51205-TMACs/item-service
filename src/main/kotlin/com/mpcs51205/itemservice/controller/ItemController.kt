@@ -35,6 +35,9 @@ class ItemController(val itemService: ItemService) {
     @GetMapping("/all")
     fun getAllItems(): Collection<Item> = itemService.getAllItems()
 
+    @GetMapping("/marked")
+    fun getMarkedItems(): Collection<Item> = itemService.getMarkedItems()
+
     @DeleteMapping("/{itemId}")
     fun deleteItem(@PathVariable itemId: UUID, authentication: Authentication) = itemService.deleteItem(UUID.fromString(authentication.name), itemId)
 

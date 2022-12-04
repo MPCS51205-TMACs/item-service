@@ -19,4 +19,7 @@ interface ItemRepository: JpaRepository <Item, UUID> {
     @Query("SELECT DISTINCT i.id FROM Item i WHERE i.userId = ?1")
     fun getItemsByUser(userId: UUID): Collection<UUID>?
 
+    @Query("SELECT DISTINCT i FROM Item i WHERE i.counterfeit = true OR i.inappropriate = true")
+    fun getMarkedItems(): Collection<Item>?
+
 }

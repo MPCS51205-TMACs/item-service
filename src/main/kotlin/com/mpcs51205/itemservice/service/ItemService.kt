@@ -208,4 +208,13 @@ class ItemService(val itemRepository: ItemRepository,
     fun getAllItems(): Collection<Item> {
         return itemRepository.findAll()
     }
+
+    fun getMarkedItems(): Collection<Item> {
+        val markedItems = itemRepository.getMarkedItems()
+        return if (!markedItems.isNullOrEmpty()) {
+            markedItems
+        } else {
+            listOf()
+        }
+    }
 }
