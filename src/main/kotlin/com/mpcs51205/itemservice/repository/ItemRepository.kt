@@ -10,6 +10,7 @@ import java.util.*
 @Repository
 interface ItemRepository: JpaRepository <Item, UUID> {
     fun getItemById(id: UUID): Item?
+    fun findByDescriptionContainingIgnoreCase(query: String): Collection<Item>?
     @Query("SELECT DISTINCT b.item from Bookmark b WHERE b.userId = ?1")
     fun getItemsByBookmarks(userId: UUID): Collection<Item>?
 

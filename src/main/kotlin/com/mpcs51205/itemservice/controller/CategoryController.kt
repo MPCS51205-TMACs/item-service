@@ -1,6 +1,7 @@
 package com.mpcs51205.itemservice.controller
 
 import com.mpcs51205.itemservice.models.Category
+import com.mpcs51205.itemservice.models.Item
 import com.mpcs51205.itemservice.service.CategoryService
 
 import org.springframework.web.bind.annotation.*
@@ -25,4 +26,7 @@ class CategoryController(val categoryService: CategoryService) {
 
     @GetMapping()
     fun getCategories(@RequestParam ids: Collection<UUID>?): Collection<Category> = categoryService.getAll(ids)
+
+    @GetMapping("/items:{catName}")
+    fun getItemsByCategory(@PathVariable catName: String): Collection<Item> = categoryService.getItemsByCategory(catName)
 }

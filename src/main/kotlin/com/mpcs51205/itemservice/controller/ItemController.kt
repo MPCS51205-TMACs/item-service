@@ -18,8 +18,8 @@ class ItemController(val itemService: ItemService) {
     @GetMapping("/{itemId}")
     fun getItem(@PathVariable itemId: UUID): Item = itemService.getItemById(itemId)
 
-    @GetMapping("/query")
-    fun queryItems(@RequestBody queryExample: Item): Collection<Item> = itemService.queryItems(queryExample)
+    @GetMapping("/query/{query}")
+    fun queryItems(@PathVariable query: String): Collection<Item> = itemService.queryItems(query)
 
     @GetMapping("/bookmark/byUser")
     fun getBookmarkedItemsByUser(authentication: Authentication): Collection<Item> =

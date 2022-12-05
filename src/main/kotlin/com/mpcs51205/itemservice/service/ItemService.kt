@@ -24,7 +24,7 @@ class ItemService(val itemRepository: ItemRepository,
         return itemRepository.findByIdOrNull(itemId) ?: throw Exception("NOT FOUND: Item $itemId not in database.")
     }
 
-    fun getItemsbyUserId(userId: UUID): List<UUID> {
+    fun getItemsByUserId(userId: UUID): List<UUID> {
         return itemRepository.getItemsByUser(userId) as List<UUID>
     }
 
@@ -48,12 +48,13 @@ class ItemService(val itemRepository: ItemRepository,
                 println("ITEM CREATED: Item ${item.id} created and auction created.")
                 rabbitMessenger.sendCreateEvent(item)
                 return item
+            } else {
+                throw Exception("ITEM NOT CREATED: Status code was not 2xx.")
             }
         } catch(e: Exception) {
             itemRepository.delete(item)
             throw Exception("ITEM NOT CREATED: Auction invalidated item creation. Reason: ${e.message}")
         }
-        return Item()
     }
 
     fun saveItem(item: Item) {
@@ -83,9 +84,11 @@ class ItemService(val itemRepository: ItemRepository,
                     println("ITEM DELETED: Item $itemId deleted successfully and auction cancelled.")
                     itemRepository.delete(getItemById(itemId))
                     rabbitMessenger.sendDeleteEvent(itemId)
+                } else {
+                    throw Exception("ERROR DELETING ITEM: Status code was not 2xx.")
                 }
             } catch (e: Exception) {
-                throw Exception("ITEM DELETION INVALIDATED: Auction invalidated item deletion")
+                throw Exception("ITEM DELETION INVALIDATED: Auction invalidated item deletion. Reason: ${e.message}")
             }
         } else {
             throw Exception("NOT AUTHORIZED TO DELETE ITEM")
@@ -155,9 +158,9 @@ class ItemService(val itemRepository: ItemRepository,
                 newBookmark.item = item
                 println("CREATED A NEW BOOKMARK FOR USER: $userId")
                 item.bookmarks += newBookmark
+                saveItem(item)
+                rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
             }
-            saveItem(item)
-            rabbitMessenger.sendUpdateEvent(ItemUpdateEvent(itemId, item))
             return item.bookmarks
         } else {
             throw Exception("NOT AUTHORIZED TO UPDATE ITEM")
@@ -172,26 +175,30 @@ class ItemService(val itemRepository: ItemRepository,
         return itemRepository.getUsersByBookmarkedItem(itemId) as List<UUID>
     }
 
-    fun queryItems(queryExample: Item): Collection<Item> {
-        var queryItem = Item()
-        queryExample.createQuery(queryItem)
+//    fun queryItems(queryExample: Item): Collection<Item> {
+//        var queryItem = Item()
+//        queryExample.createQuery(queryItem)
+//
+//        val matcher: ExampleMatcher = ExampleMatcher.matchingAll()
+//            .withMatcher("description", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
+//            .withIgnorePaths("id", "userEmail", "bookmarks")
+//        val example: Example<Item> = Example.of(queryItem, matcher)
+//        var results = itemRepository.findAll(example)
+//
+//        if (queryItem.categories.isNotEmpty() && results.isNotEmpty()) {
+//            var queryIds = mutableListOf<String>()
+//            for (cat in queryItem.categories) { queryIds.add(cat.categoryDescription!!) }
+//            results.removeAll {
+//                var resultIds = mutableListOf<String>()
+//                for (cat in it.categories) { resultIds.add(cat.categoryDescription!!) }
+//                !resultIds.containsAll(queryIds)
+//            }
+//        }
+//        return results
+//    }
 
-        val matcher: ExampleMatcher = ExampleMatcher.matchingAll()
-            .withMatcher("description", ExampleMatcher.GenericPropertyMatchers.contains().ignoreCase())
-            .withIgnorePaths("id", "userEmail", "bookmarks")
-        val example: Example<Item> = Example.of(queryItem, matcher)
-        var results = itemRepository.findAll(example)
-
-        if (queryItem.categories.isNotEmpty() && results.isNotEmpty()) {
-            var queryIds = mutableListOf<String>()
-            for (cat in queryItem.categories) { queryIds.add(cat.categoryDescription!!) }
-            results.removeAll {
-                var resultIds = mutableListOf<String>()
-                for (cat in it.categories) { resultIds.add(cat.categoryDescription!!) }
-                !resultIds.containsAll(queryIds)
-            }
-        }
-        return results
+    fun queryItems(query: String): Collection<Item> {
+        return itemRepository.findByDescriptionContainingIgnoreCase(query) as List<Item>
     }
 
     fun getItemsFromList(idList: List<String>): Collection<Item> {
@@ -200,7 +207,7 @@ class ItemService(val itemRepository: ItemRepository,
 
     fun checkoutItems(idList: List<String>) {
         for (id in idList) {
-            var item = getItemById(UUID.fromString(id))
+            val item = getItemById(UUID.fromString(id))
             item.bought = true
             saveItem(item)
             println("ITEM $id CHECKED OUT")

@@ -1,6 +1,7 @@
 package com.mpcs51205.itemservice.service
 
 import com.mpcs51205.itemservice.models.Category
+import com.mpcs51205.itemservice.models.Item
 import com.mpcs51205.itemservice.repository.CategoryRepository
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
@@ -23,8 +24,9 @@ class CategoryService(val categoryRepository: CategoryRepository) {
     fun saveCategory(category: Category) {
         try {
             categoryRepository.save(category)
+            println("SAVED CATEGORY")
         } catch (e: Exception) {
-            throw Exception(e.message)
+            throw Exception("ERROR SAVING CATEGORY: ${e.message}")
         }
     }
 
@@ -51,4 +53,7 @@ class CategoryService(val categoryRepository: CategoryRepository) {
 
     fun getAll(ids: Collection<UUID>?) = (ids?.map { categoryRepository.findByIdOrNull(it) }?.filterNotNull()
         ?: categoryRepository.findAll())
+
+    fun getItemsByCategory(catName: String) = categoryRepository.getItemsByCategory(catName) ?:
+    throw Exception("NO MATCHING ITEMS IN THAT CATEGORY")
 }
