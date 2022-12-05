@@ -2,6 +2,7 @@ package com.mpcs51205.itemservice.controller
 
 import com.mpcs51205.itemservice.models.Category
 import com.mpcs51205.itemservice.models.Item
+import com.mpcs51205.itemservice.models.UpdateCategory
 import com.mpcs51205.itemservice.service.CategoryService
 
 import org.springframework.web.bind.annotation.*
@@ -18,8 +19,8 @@ class CategoryController(val categoryService: CategoryService) {
     fun getCategory(@PathVariable catId: UUID): Category = categoryService.getCategoryById(catId)
 
     @PutMapping("/{catId}")
-    fun modifyCategory(@PathVariable catId: UUID, @RequestBody newDescription: String) =
-        categoryService.modifyCategory(catId, newDescription)
+    fun modifyCategory(@PathVariable catId: UUID, @RequestBody newDescription: UpdateCategory) =
+        categoryService.modifyCategory(catId, newDescription.categoryDescription)
 
     @DeleteMapping("/{catId}")
     fun deleteCategory(@PathVariable catId: UUID) = categoryService.deleteCategory(catId)
