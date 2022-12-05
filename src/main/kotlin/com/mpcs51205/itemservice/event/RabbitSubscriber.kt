@@ -25,8 +25,12 @@ class RabbitSubscriber(val itemService: ItemService) {
         println("RECEIVED USER DELETION EVENT")
         val itemsToDelete = itemService.getItemsByUserId(userDelete.userId)
         for (itemId in itemsToDelete) {
-            itemService.deleteItem(itemId, userDelete.userId)
-            println("DELETING: $itemId")
+            try {
+                itemService.deleteItem(itemId, userDelete.userId)
+                println("DELETING: $itemId")
+            } catch (e: Exception) {
+                println("UNABLE TO DELETE ITEM WITH USER DELETION EVENT")
+            }
         }
     }
 }
